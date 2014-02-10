@@ -12,7 +12,7 @@ class HealthSystem extends System<Main, EntityCreator>
         @registerListener "COLLISION";
     }
 
-    function onCollision(entity:String, ev:Dynamic)
+    function onCollision(entity:Entity, ev:Dynamic)
     {
         var health = em.getComponent(entity, CHealth);
         health.value -= 8;

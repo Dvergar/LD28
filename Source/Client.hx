@@ -221,9 +221,12 @@ class CInterpolation extends Component
 
 class CGhost extends Component
 {
-    public function new()
+    public var entity:Entity;
+
+    public function new(entity:Entity)
     {
         super();
+        this.entity = entity;
     }
 }
 
@@ -290,9 +293,7 @@ class CDrawable extends Component
 
 class DrawableSystem extends System<Client, EntityCreator>
 {
-    public function init()
-    {
-    }
+    public function init() {}
 
     public function processEntities()
     {
@@ -302,8 +303,17 @@ class DrawableSystem extends System<Client, EntityCreator>
             var drawable = em.getComponent(entity, CDrawable);
             var pos = em.getComponent(entity, CPosition);
 
-            drawable.sprite.x = pos.x;
-            drawable.sprite.y = pos.y;
+            if(em.hasComponent(entity, CInterpolation))
+            {
+                // trace("pos " + pos.x + " / " + pos.y);
+                drawable.sprite.x += (pos.x - drawable.sprite.x) * 0.3;
+                drawable.sprite.y += (pos.y - drawable.sprite.y) * 0.3;
+            }
+            else
+            {
+                drawable.sprite.x = pos.x;
+                drawable.sprite.y = pos.y;
+            }
         }
     }
 }
@@ -344,8 +354,8 @@ class Client extends Enh2<Client, EntityCreator>
     {
         trace("myplayer " + myPlayer);
         // connect("192.168.1.4", 1111);
-        // connect("192.168.1.4", 8008);
-        connect("90.51.4.31", 8008);
+        connect("192.168.1.4", 8008);
+        // connect("90.51.4.31", 8008);
         Client.msn = new Messenger();
         Client.viewport = new Sprite();
         Client.emm = em; // damn workaround
@@ -361,13 +371,14 @@ class Client extends Enh2<Client, EntityCreator>
         @addSystem CameraSystem;
         @addSystem InterpolationSystem;
         @addSystem StarSystem;
+        @addSystem GhostSystem;
         #if standalone
         @addSystem HealthSystem;
         #end
 
         @registerListener "NET_ACTION_LOL";
         @registerListener "OTHER_PLAYER_CREATE";
-        @registerListener "PLAYER_UPDATE";
+        // @registerListener "PLAYER_UPDATE";
         @registerListener "BULLET_MAKE";
         @registerListener "CONNECTION";
         @registerListener "PLAYER_CREATE";
@@ -396,7 +407,7 @@ class Client extends Enh2<Client, EntityCreator>
         startLoop(loop, 1/60);
     }
 
-    function onNewRound(entity:String, ev:Dynamic)
+    function onNewRound(entity:Entity, ev:Dynamic)
     {
         trace("new round");
 
@@ -422,7 +433,7 @@ class Client extends Enh2<Client, EntityCreator>
     }
 
     @id('Short') @ownerId('Short') @lvl('Short')
-    function onPlayerKill(entity:String, ev:Dynamic)
+    function onPlayerKill(entity:Entity, ev:Dynamic)
     {
         function switchCamera()
         {
@@ -482,98 +493,124 @@ class Client extends Enh2<Client, EntityCreator>
     }
 
     @x('Short') @y('Short') @id('Short') @lvl('Short') @connId('Short')
-    function onOtherPlayerCreate(entity:String, ev:Dynamic)
+    function onOtherPlayerCreate(entity:Entity, ev:Dynamic)
     {
         onPlayerCreate(entity, ev);
     }
 
-    @x('Short') @y('Short') @id('Short') @lvl('Short') @connId('Short')
-    function onPlayerCreate(entity:String, ev:Dynamic)
+    function onPlayerCreate(player:Entity, ev:Dynamic)
     {
-        trace("onPlayerCreate " + ev.connId);
-        if(ClientManager.myId == ev.connId)
+        trace("player create " + player + " ./ " + ev.id);
+        if(ev.id == ClientManager.myId)
         {
-            if(myPlayer != null) return;
-            trace("new player");
-
-            // GHOST
-            myGhost = ec.player([ev.x, ev.y]);
-            em.addComponent(myGhost, new CGhost());
-            em.addComponent(myGhost, new CInterpolation(ev.x, ev.y));
-            em.removeComponentOfType(myGhost, CPlayer);
-            var drawable = em.getComponent(myGhost, CDrawable);
-            // drawable.sprite.alpha = 0.5;
-            drawable.sprite.alpha = 0;
-            drawable.sprite.visible = false;
-
-            // ME
-            myPlayer = ec.player([ev.x, ev.y]);
-            myId = ev.id;
-            em.setId(myPlayer, ev.id);
-            em.addComponent(myPlayer, new CInput());
-            em.addComponent(myPlayer, new CCamera());
-            em.addComponent(myPlayer, new CMyPlayer());
-            em.addComponent(myPlayer, new CLevel(ev.lvl));
-            starSystem.attachStarTo(myPlayer);
+            trace("myplayer");
+            // myId = ev.id;
+            // em.setId(player, ev.id);
+            // em.addComponent(player, new CInput());
+            em.addComponent(player, new CCamera());
+            em.addComponent(player, new CMyPlayer());
+            em.addComponent(player, new CLevel(ev.lvl));
+            starSystem.attachStarTo(player);
             setBulletRateForLevel(ev.lvl);
 
-            return;
+            // GHOST
+            var ghost = ec.player([ev.x, ev.y]);
+            em.addComponent(ghost, new CGhost(player));
+            em.addComponent(ghost, new CInterpolation(0, 0));
+            var drawable = em.getComponent(ghost, CDrawable);
+            drawable.sprite.alpha = 0.5;
+            // drawable.sprite.alpha = 0;
+            // drawable.sprite.visible = false;
         }
-        // trace("humpf " + em.getEntityFromId(ev.id));
-        else if(em.getEntityFromId(ev.id) == null)
-        {
-            trace("other player " + ev.lvl);
-            var player = ec.player([ev.x, ev.y]);
-            em.addComponent(player, new CLevel(ev.lvl));
-            em.addComponent(player, new CCollidable());
-            em.addComponent(player, new CInterpolation(ev.x, ev.y));
-            em.setId(player, ev.id);
-            starSystem.attachStarTo(player);
-        }
-        else
-        {
-            trace("NOPE CREATION " + em.getEntityFromId(ev.id));
-        }
-
-        // var allPlayers = em.getAllComponentsOfType(CPlayer);
-        // var nbPlayers = 0;
-        // for(player in allPlayers) nbPlayers++;
-        // trace("players nb " + nbPlayers);
     }
 
-    @x('Short') @y('Short') @hp('Short') @id('Short') @flipped('Bool')
-    function onPlayerUpdate(connection:String, ev:Dynamic)
-    {
-        var entity = em.getEntityFromId(ev.id);
-        // trace("entity update " + entity);
+    // @x('Short') @y('Short') @id('Short') @lvl('Short') @connId('Short')
+    // function onPlayerCreate(entity:Entity, ev:Dynamic)
+    // {
+    //     trace("onPlayerCreate " + ev.connId);
+    //     if(ClientManager.myId == ev.connId)
+    //     {
+    //         if(myPlayer != null) return;
+    //         trace("new player");
 
-        if(ev.id == myId)
-        {
-            var pos = em.getComponent(myGhost, CPosition);
-            var hp = em.getComponent(myGhost, CHealth);
-            var interp = em.getComponent(myGhost, CInterpolation);
+    //         // GHOST
+    //         myGhost = ec.player([ev.x, ev.y]);
+    //         em.addComponent(myGhost, new CGhost());
+    //         em.addComponent(myGhost, new CInterpolation(ev.x, ev.y));
+    //         em.removeComponentOfType(myGhost, CPlayer);
+    //         var drawable = em.getComponent(myGhost, CDrawable);
+    //         // drawable.sprite.alpha = 0.5;
+    //         drawable.sprite.alpha = 0;
+    //         drawable.sprite.visible = false;
 
-            pos.flipped = ev.flipped;
-            interp.x = ev.x;
-            interp.y = ev.y;
-            hp.future = ev.hp;
-        }
-        else
-        {
-            var interp = em.getComponent(entity, CInterpolation);
-            interp.x = ev.x;
-            interp.y = ev.y;
-        }
+    //         // ME
+    //         myPlayer = ec.player([ev.x, ev.y]);
+    //         myId = ev.id;
+    //         em.setId(myPlayer, ev.id);
+    //         em.addComponent(myPlayer, new CInput());
+    //         em.addComponent(myPlayer, new CCamera());
+    //         em.addComponent(myPlayer, new CMyPlayer());
+    //         em.addComponent(myPlayer, new CLevel(ev.lvl));
+    //         starSystem.attachStarTo(myPlayer);
+    //         setBulletRateForLevel(ev.lvl);
+
+    //         return;
+    //     }
+    //     // trace("humpf " + em.getEntityFromId(ev.id));
+    //     else if(em.getEntityFromId(ev.id) == null)
+    //     {
+    //         trace("other player " + ev.lvl);
+    //         var player = ec.player([ev.x, ev.y]);
+    //         em.addComponent(player, new CLevel(ev.lvl));
+    //         em.addComponent(player, new CCollidable());
+    //         em.addComponent(player, new CInterpolation(ev.x, ev.y));
+    //         em.setId(player, ev.id);
+    //         starSystem.attachStarTo(player);
+    //     }
+    //     else
+    //     {
+    //         trace("NOPE CREATION " + em.getEntityFromId(ev.id));
+    //     }
+
+    //     // var allPlayers = em.getAllComponentsOfType(CPlayer);
+    //     // var nbPlayers = 0;
+    //     // for(player in allPlayers) nbPlayers++;
+    //     // trace("players nb " + nbPlayers);
+    // }
+
+    // @x('Short') @y('Short') @hp('Short') @id('Short') @flipped('Bool')
+    // function onPlayerUpdate(connection:String, ev:Dynamic)
+    // {
+    //     var entity = em.getEntityFromId(ev.id);
+    //     // trace("entity update " + entity);
+
+    //     if(ev.id == myId)
+    //     {
+    //         var pos = em.getComponent(myGhost, CPosition);
+    //         var hp = em.getComponent(myGhost, CHealth);
+    //         var interp = em.getComponent(myGhost, CInterpolation);
+
+    //         pos.flipped = ev.flipped;
+    //         interp.x = ev.x;
+    //         interp.y = ev.y;
+    //         hp.future = ev.hp;
+    //     }
+    //     else
+    //     {
+    //         var interp = em.getComponent(entity, CInterpolation);
+    //         interp.x = ev.x;
+    //         interp.y = ev.y;
+    //     }
         
-        var pos = em.getComponent(entity, CPosition);
-        var hp = em.getComponent(entity, CHealth);
+    //     var pos = em.getComponent(entity, CPosition);
+    //     var hp = em.getComponent(entity, CHealth);
 
-        pos.flipped = ev.flipped;
-        hp.future = ev.hp;
-    }
+    //     pos.flipped = ev.flipped;
+    //     hp.future = ev.hp;
+    // }
 
     @x('Short') @y('Short') @vx('Short') @vy('Short') @ownerId('Short') @id('Short')
-    function onBulletMake(entity:String, ev:Dynamic)
+    function onBulletMake(entity:Entity, ev:Dynamic)
     {
         if(myId == ev.ownerId) return;
 
@@ -586,19 +623,19 @@ class Client extends Enh2<Client, EntityCreator>
     }
 
     @id('Short')
-    function onBulletDestroy(entity:String, ev:Dynamic)
+    function onBulletDestroy(entity:Entity, ev:Dynamic)
     {
         // if(myId == ev.ownerId) return;
         // trace("onBulletDestroy");
         SoundManager.flop.play();
-        var bullet = em.getEntityFromId(ev.id);
+        var bullet:Null<Entity> = em.getEntityFromId(ev.id);
         if(bullet == null) return;
         em.killEntity(bullet);
 
     }
 
     @id('Short')
-    function onPlayerDestroy(entity:String, ev:Dynamic)
+    function onPlayerDestroy(entity:Entity, ev:Dynamic)
     {
         // trace("onPlayerDestroy");
         var player = em.getEntityFromId(ev.id);
@@ -631,12 +668,12 @@ class Client extends Enh2<Client, EntityCreator>
     }
 
     @hp('Int') @msg('String')
-    private function onNetActionLol(entity:String, ev:Dynamic)
+    private function onNetActionLol(entity:Entity, ev:Dynamic)
     {
         trace("onNetActionLol");
     }
 
-    private function onConnection(entity:String, ev:Dynamic)
+    private function onConnection(entity:Entity, ev:Dynamic)
     {
         trace("connected " + ClientManager.myId);
         @RPC("NET_HELLO", "Hoy") {msg:String};
@@ -650,14 +687,15 @@ class Client extends Enh2<Client, EntityCreator>
         inputSystem.processEntities();
         movementSystem.processEntities();
         collisionSystem.processEntities();
-        interpolationSystem.processEntities();
+        ghostSystem.processEntities();
+        // interpolationSystem.processEntities();
         drawableSystem.processEntities();
         animationSystem.processEntities();
         cameraSystem.processEntities();
 
         em.processKills();
 
-        var allInputs = this.em.getEntitiesWithComponent(CInput);
+        var allInputs = this.em.getEntitiesWithComponent(CMyPlayer);
         for(player in allInputs)
         {
             var pos = em.getComponent(player, CPosition);

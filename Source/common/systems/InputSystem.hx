@@ -1,4 +1,4 @@
-package client.systems;
+package common.systems;
 
 import enh.Builders;
 import enh.Timer;
@@ -7,10 +7,12 @@ import Common;
 import Client;
 import common.World;
 
+#if client
 import flash.events.KeyboardEvent;
 import flash.events.MouseEvent;
 import flash.ui.Keyboard;
 import flash.Lib;
+#end
 
 
 class InputSystem extends System<Client, EntityCreator>
@@ -21,20 +23,24 @@ class InputSystem extends System<Client, EntityCreator>
     {
         this.bulletRate = 0.3;
 
+        #if client
         Lib.current.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
         Lib.current.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
         Lib.current.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
         Lib.current.stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
         Lib.current.stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
+        #end
     }
 
+    #if client
     private function onMouseMove(event:MouseEvent)
     {
         var allInputs = this.em.getEntitiesWithComponent(CInput);
-        for(input in allInputs)
+        for(player in allInputs)
         {
-        	var pos = em.getComponent(input, CPosition);
-        	var drawable = em.getComponent(input, CDrawable);
+            var pos = em.getComponent(player, CPosition);
+        	var input = em.getComponent(player, CInput);
+        	var drawable = em.getComponent(player, CDrawable);
         	var sprite = drawable.sprite;
         	var bitmap = drawable.bitmap;
 
@@ -53,6 +59,9 @@ class InputSystem extends System<Client, EntityCreator>
         		// sprite.scaleX = 1;
         		// bitmap.x = 0;
         	}
+
+            input.mouseX = Std.int(event.stageX - Client.viewport.x);
+            input.mouseY = Std.int(event.stageY - Client.viewport.y);
     	}
     }
 
@@ -116,6 +125,7 @@ class InputSystem extends System<Client, EntityCreator>
 	        }
 	    }
     }
+    #end
 
     public function processEntities()
     {
@@ -124,15 +134,16 @@ class InputSystem extends System<Client, EntityCreator>
         {
         	var input = em.getComponent(player, CInput);
 
-        	if(input.mouseIsDown && Timer.getTime() - input.lastActionTime > bulletRate)
+        	if(input.mouseIsDown &&
+               Timer.getTime() - input.lastActionTime > bulletRate)
         	{
         		var playerPos = em.getComponent(player, CPosition);
 
                 var playerCenterX = Std.int(playerPos.x + World.TILE_SIZE / 2);
                 var playerCenterY = Std.int(playerPos.y + World.TILE_SIZE / 2);
 
-        		var v = [Lib.current.stage.mouseX - playerCenterX - Client.viewport.x,
-        				 Lib.current.stage.mouseY - playerCenterY - Client.viewport.y];
+        		var v:Array<Float> = [input.mouseX - playerCenterX,
+        				 input.mouseY - playerCenterY];
         		var d = Math.sqrt(Math.pow(v[0], 2) + Math.pow(v[1], 2));
         		v = [v[0] / d, v[1] / d];
 

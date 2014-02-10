@@ -129,7 +129,7 @@ class AnimationSystem extends System<Client, EntityCreator>
         }
     }
 
-    function onCollisionEnd(entity:String)
+    function onCollisionEnd(entity:Entity)
     {
         // trace("onCollisionEnd");
         var drawable = em.getComponent(entity, CDrawable);

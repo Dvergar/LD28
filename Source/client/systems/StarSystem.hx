@@ -17,7 +17,7 @@ class StarSystem extends System<Client, EntityCreator>
 {
     public function init() {}
 
-    public function attachStarTo(entity:String)
+    public function attachStarTo(entity:Entity)
     {
         // TODO : removecomponent when addcomponent in enh, to autdetach when overwriting component
         if(em.hasComponent(entity, CStar))

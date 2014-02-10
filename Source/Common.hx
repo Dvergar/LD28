@@ -52,9 +52,9 @@ class CLevel extends Component
 
 class COwner extends Component
 {
-    public var entity:String;
+    public var entity:Entity;
 
-    public function new(entity:String)
+    public function new(entity:Entity)
     {
         super();
         this.entity = entity;
@@ -144,6 +144,8 @@ class CInput extends Component
     public var mouseIsDown:Bool;
     public var lastActionTime:Float;
     public var updated:Bool;
+    public var mouseX:Short;
+    public var mouseY:Short;
 
     public function new()
     {
@@ -157,6 +159,8 @@ class CInput extends Component
         this.mouseIsDown = false;
         this.lastActionTime = Timer.getTime();
         this.updated = false;
+        this.mouseX = 0;
+        this.mouseY = 0;
     }
 }
 
@@ -167,8 +171,8 @@ class EntityCreator extends EntityCreatowr
         super();
     }
 
-    @freeze
-    public function player(args:Array<Int>):String
+    @networked
+    public function player(args:Array<Int>):Entity
     {
 
         var x = args[0];
@@ -178,6 +182,7 @@ class EntityCreator extends EntityCreatowr
         trace("player spawn at : " + args + " # " + player);
         em.addComponent(player, new CPosition(x, y));
         em.addComponent(player, new CPlayer());
+        em.addComponent(player, new CInput());
         em.addComponent(player, new CLevel(0));
         em.addComponent(player, new CHealth(100)); // Careful not used for HP but plain 100 in AnimationSystem
 
@@ -208,8 +213,8 @@ class EntityCreator extends EntityCreatowr
         return player;
     }
 
-    @freeze
-    public function bullet(args:Array<Int>):String
+    @networked
+    public function bullet(args:Array<Int>):Entity
     {
         var x = args[0];
         var y = args[1];
@@ -228,7 +233,7 @@ class EntityCreator extends EntityCreatowr
     }
 
     #if client
-    public function deadBody(args:Array<Int>):String
+    public function deadBody(args:Array<Int>):Entity
     {
         var x = args[0];
         var y = args[1];

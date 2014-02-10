@@ -38,19 +38,19 @@ class Server extends Enh2<Server, EntityCreator>
         this.startLoop(loop, 1/60);
     }
 
-    function onPing(entity:String, ev:Dynamic)
+    function onPing(entity:Entity, ev:Dynamic)
     {
         // trace("ping");
     }
 
     @msg('String')
-    function onNetHello(entity:String, ev:Dynamic)
+    function onNetHello(entity:Entity, ev:Dynamic)
     {
         trace("onNetHello");
     }
 
     @left('Bool') @right('Bool') @up('Bool') @down('Bool') @flipped('Bool')
-    function onPlayerUpdate(player:String, ev:Dynamic)
+    function onPlayerUpdate(player:Entity, ev:Dynamic)
     {
         var id = em.getIdFromEntity(player);
         var hp = em.getComponent(player, CHealth);
@@ -89,7 +89,7 @@ class Server extends Enh2<Server, EntityCreator>
     }
 
     @x('Short') @y('Short') @vx('Short') @vy('Short')
-    function onBulletMake(player:String, ev:Dynamic)
+    function onBulletMake(player:Entity, ev:Dynamic)
     {
         if(em.hasComponent(player, CDead)) return;
         var ownerId = em.getIdFromEntity(player);
@@ -107,34 +107,35 @@ class Server extends Enh2<Server, EntityCreator>
                 {x:Short, y:Short, vx:Short, vy:Short, ownerId:Short, id:Short};
     }
 
-    function onConnection(conn:String, ev:Dynamic)
+    function onConnection(conn:Entity, ev:Dynamic)
     {
         trace("onConnection " + conn);
         // net.sendWorldStateTo(conn);
 
-        // var mouseEntity = net.createNetworkEntity("mouse", connectionEntity, [100, 100]);
 
         var newPos = getNewPlayerPosition();
-        var player = ec.player([newPos[0], newPos[1]]);
-        em.addComponent(player, new CInput());
-        em.addComponent(player, new CCollidable());
+        var player = net.createNetworkEntity("player", conn, [100, 100], true);
         net.setConnectionEntityFromTo(conn, player);
-        var id = em.setId(player);
 
-        broadCastMyPlayerCreate(player);
-        broadCastPlayerCreate();
-        trace("new player " + newPos + " id " + id);
+        // var player = ec.player([newPos[0], newPos[1]]);
+        // em.addComponent(player, new CInput());
+        // em.addComponent(player, new CCollidable());
+        // var id = em.setId(player);
+
+        // broadCastMyPlayerCreate(player);
+        // broadCastPlayerCreate();
+        // trace("new player " + newPos + " id " + id);
     }
 
-    public function broadCastMyPlayerCreate(player:String)
-    {
-        var connId = net.connectionsByEntity[player].id;
-        var id = em.getIdFromEntity(player);
-        var pos = em.getComponent(player, CPosition);
-        @RPC("PLAYER_CREATE", Std.int(pos.x), Std.int(pos.y), id, 0, connId)
-                {x:Short, y:Short, id:Short, lvl:Short, connId:Short};
+    // public function broadCastMyPlayerCreate(player:String)
+    // {
+    //     var connId = net.connectionsByEntity[player].id;
+    //     var id = em.getIdFromEntity(player);
+    //     var pos = em.getComponent(player, CPosition);
+    //     @RPC("PLAYER_CREATE", Std.int(pos.x), Std.int(pos.y), id, 0, connId)
+    //             {x:Short, y:Short, id:Short, lvl:Short, connId:Short};
 
-    }
+    // }
 
     public function broadCastPlayerCreate()
     {
@@ -152,10 +153,10 @@ class Server extends Enh2<Server, EntityCreator>
         }
     }
 
-    function onDisconnection(player:String, ev:Dynamic)
+    function onDisconnection(player:Entity, ev:Dynamic)
     {
         trace("onDisconnection " + player);
-        if(player == null)
+        if(player == -1)
         {
             trace("entity hasn't probably entered the game yet, ignoring destruction");
             return;
@@ -175,21 +176,21 @@ class Server extends Enh2<Server, EntityCreator>
 
         em.processKills();
 
-        if(Timer.getTime() - netTime > 1/20)
-        {   
-            var allPlayers = em.getEntitiesWithComponent(CPlayer);
-            for(player in allPlayers)
-            {
-                var id = em.getIdFromEntity(player);
-                var pos = em.getComponent(player, CPosition);
-                var hp = em.getComponent(player, CHealth);
+        // if(Timer.getTime() - netTime > 1/20)
+        // {   
+        //     var allPlayers = em.getEntitiesWithComponent(CPlayer);
+        //     for(player in allPlayers)
+        //     {
+        //         var id = em.getIdFromEntity(player);
+        //         var pos = em.getComponent(player, CPosition);
+        //         var hp = em.getComponent(player, CHealth);
 
-                @RPC("PLAYER_UPDATE", Std.int(pos.x), Std.int(pos.y), Std.int(hp.value), id, pos.flipped)
-                        {x:Short, y:Short, hp:Short, id:Short, flipped:Bool};
-            }
+        //         @RPC("PLAYER_UPDATE", Std.int(pos.x), Std.int(pos.y), Std.int(hp.value), id, pos.flipped)
+        //                 {x:Short, y:Short, hp:Short, id:Short, flipped:Bool};
+        //     }
 
-            netTime = Timer.getTime();
-        }
+        //     netTime = Timer.getTime();
+        // }
     }
 
     static function main() {new Server();}

@@ -59,7 +59,7 @@ class CollisionSystem extends System<Main, EntityCreator>
         return outside;
     }
 
-    public function move(player:String)
+    public function move(player:Entity)
     {
         var pos = em.getComponent(player, CPosition);
         var input = em.getComponent(player, CInput);
@@ -119,7 +119,7 @@ class CollisionSystem extends System<Main, EntityCreator>
         pos.dy = 0;
     }
 
-    function broadcastBulletDestroy(bullet:String)
+    function broadcastBulletDestroy(bullet:Entity)
     {
         #if server
         var id = em.getIdFromEntity(bullet);
