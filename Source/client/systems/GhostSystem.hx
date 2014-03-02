@@ -16,7 +16,6 @@ class GhostSystem extends System<Client, EntityCreator>
         var allGhosts = em.getEntitiesWithComponent(CGhost);
         for(ghost in allGhosts)
         {
-            // trace("moop");
             var player = em.getComponent(ghost, CGhost).entity;
             var gpos = em.getComponent(ghost, CPosition);
             var ppos = em.getComponent(player, CPosition);

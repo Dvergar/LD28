@@ -35,7 +35,9 @@ class CollisionSystem extends System<Main, EntityCreator>
         for(corner in corners())
         {
             var tpos = getTilePosition(x + corner[0], y + corner[1]);
-            // trace("tpos " + tpos);
+
+            if(outsideMap(tpos[0], tpos[1])) continue;
+
             if(World.map[tpos[0]][tpos[1]] != -1)
             {
                 collision = true;
@@ -71,18 +73,14 @@ class CollisionSystem extends System<Main, EntityCreator>
 
         if(collides(newx, pos.y))
         {
-            // trace("collision x ");
-            // newx = pos.x;
             var tpos = getTilePosition(newx, pos.y);
 
             if(pos.dx > 0)
             {
-                // trace("coll right");
                 newx = ((tpos[0] + 1) * World.TILE_SIZE) - World.TILE_SIZE;
             }
             if(pos.dx < 0)
             {
-                // trace("coll left");
                 newx = (tpos[0] + 1) * World.TILE_SIZE;
             }
         }
@@ -94,18 +92,14 @@ class CollisionSystem extends System<Main, EntityCreator>
 
         if(collides(pos.x, newy))
         {
-            // trace("collision y ");
-            // newy = pos.y;
             var tpos = getTilePosition(pos.x, newy);
 
             if(pos.dy > 0)
             {
-                // trace("coll bot");
                 newy = ((tpos[1] + 1) * World.TILE_SIZE) - World.TILE_SIZE;
             }
             else
             {
-                // trace("coll top");
                 newy = (tpos[1] + 1) * World.TILE_SIZE;
             }
         }
@@ -119,14 +113,6 @@ class CollisionSystem extends System<Main, EntityCreator>
         pos.dy = 0;
     }
 
-    function broadcastBulletDestroy(bullet:Entity)
-    {
-        #if server
-        var id = em.getIdFromEntity(bullet);
-        @RPC("BULLET_DESTROY", id) {id:Short};
-        #end
-    }
-
     public function processEntities()
     {
         #if client
@@ -137,12 +123,8 @@ class CollisionSystem extends System<Main, EntityCreator>
         }
         #end
 
-        #if (server || standalone)
+        #if server
         var allMovingObjects = em.getEntitiesWithComponent(CMovingObject);
-        #end
-        #if client
-        var allMovingObjects = em.getEntitiesWithComponent(CMyBullet);
-        #end
         for(object in allMovingObjects)
         {
             var pos = em.getComponent(object, CPosition);
@@ -151,25 +133,18 @@ class CollisionSystem extends System<Main, EntityCreator>
             // BULLETS TO WORLD
             if(outsideMap(tpos[0], tpos[1]))
             {
-                broadcastBulletDestroy(object);
-                em.killEntityNow(object);
-                // trace("bullet destroy outside");
+                net.killEntityNow(object);
                 continue;
             }
 
             if(World.map[tpos[0]][tpos[1]] != -1)
             {
-                // trace("bullet destroy block");
-                broadcastBulletDestroy(object);
-                em.killEntityNow(object);
-                #if client
-                SoundManager.flop.play();
-                #end
+                net.killEntityNow(object);
                 continue;
             }
 
             // BULLETS TO PLAYERS
-            // God that's really unoptimized
+            // Mhhhhhhhhhh U_U
             var owner = em.getComponent(object, COwner).entity;
             var allPlayers = em.getEntitiesWithComponent(CPlayer);
             for(player in allPlayers)
@@ -180,20 +155,12 @@ class CollisionSystem extends System<Main, EntityCreator>
                 if(ppos.x < pos.x && pos.x < ppos.x + World.TILE_SIZE &&
                    ppos.y < pos.y && pos.y < ppos.y + World.TILE_SIZE)
                 {
-                    #if (standalone || server)
                     em.pushEvent("COLLISION", player, {owner:owner});
-                    #end
-                    #if server
-                    // var playerId = em.getIdFromEntity(player);
-                    // @RPC("COLLISION", playerId) {id:Short};
-                    broadcastBulletDestroy(object);
-                    #end
-
-                    // trace("localcollision");
-                    em.killEntityNow(object);
+                    net.killEntityNow(object);
                     break;
                 }
             }
         }
+        #end
     }
 }

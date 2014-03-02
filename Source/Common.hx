@@ -1,4 +1,3 @@
-// import enh.EntityManager;
 import enh.Builders;
 import enh.Timer;
 
@@ -9,8 +8,6 @@ import flash.display.Sprite;
 import openfl.Assets;
 import Client;
 #end
-
-import enh.ByteArray;
 
 import common.World;
 
@@ -70,6 +67,14 @@ class CPlayer extends Component
 }
 
 
+class CBullet extends Component
+{
+    public function new() {
+        super();
+    }
+}
+
+
 class CCollidable extends Component
 {
     public function new() {
@@ -78,44 +83,61 @@ class CCollidable extends Component
 }
 
 
-class CHealth extends Component
+class CBulletRate extends Component
 {
     public var value:Float;
-    public var future:Float;
+
+    public function new(value:Float) {
+        super();
+        this.value = value;
+    }
+}
+
+
+@networked
+class CHealth extends Component
+{
+    @int public var value:Float;
+    public var past:Float;
     public var regen:Float;
 
     public function new(value:Int) {
         super();
         this.value = value;
-        this.future = value;
+        this.past = value;
         this.regen = 0.03;
     }
 }
 
-
+@networked
 class CMovingObject extends Component
 {
-    public var v:Array<Float>;
-    public var speed:Int;
+    @float public var vx:Float;
+    @float public var vy:Float;
+    @short public var speed:Int;
 
-    public function new(v:Array<Float>, speed:Int)
+    public function new(?vx:Float, ?vy:Float, ?speed:Int)
     {
         super();
-        this.v = v;
+        this.vx = vx;
+        this.vy = vy;
         this.speed = speed;
     }
 }
 
-
+@networked
 class CPosition extends Component
 {
-    public var x:Float;
-    public var y:Float;
+    @short("netx") public var x:Float;
+    @short("nety") public var y:Float;
+    @bool("netFlipped") public var flipped:Bool;
     public var dx:Float;
     public var dy:Float;
     public var oldx:Float;
     public var oldy:Float;
-    public var flipped:Bool;
+    public var netx:Float;
+    public var nety:Float;
+    public var netFlipped:Bool;
     public var lastMove:Float;
 
     public function new(x:Float, y:Float)
@@ -123,11 +145,13 @@ class CPosition extends Component
         super();
         this.x = x;
         this.y = y;
+        this.flipped = false;
         this.dx = 0;
         this.dy = 0;
         this.oldx = x;
         this.oldy = y;
-        this.flipped = false;
+        this.netx = x;
+        this.nety = y;
         this.lastMove = Timer.getTime();
     }
 }
@@ -165,6 +189,16 @@ class CInput extends Component
 }
 
 
+class Upgrade
+{
+    static public inline function level(entity:Entity, lvl:Int)
+    {
+        Enh.em.getComponent(entity, CBulletRate).value = 0.3 - lvl * 0.05;
+        trace("LEVEL UP " +  Enh.em.getComponent(entity, CBulletRate).value);
+    }
+}
+
+
 class EntityCreator extends EntityCreatowr
 {
     public function new() {
@@ -180,18 +214,24 @@ class EntityCreator extends EntityCreatowr
 
         var player = em.createEntity();
         trace("player spawn at : " + args + " # " + player);
-        em.addComponent(player, new CPosition(x, y));
+        @sync em.addComponent(player, new CPosition(x, y));
+        @sync em.addComponent(player, new CHealth(100));
         em.addComponent(player, new CPlayer());
-        em.addComponent(player, new CInput());
         em.addComponent(player, new CLevel(0));
-        em.addComponent(player, new CHealth(100)); // Careful not used for HP but plain 100 in AnimationSystem
+        em.addComponent(player, new CBulletRate(0.3));
+        #if server
+        em.addComponent(player, new CInput());
+        #end
 
         #if client
         // ANIMATION FRAMES
         var bitmapFrames = [];
-        bitmapFrames.push(new Bitmap(Assets.getBitmapData("assets/soldier_anim1.png")));
-        bitmapFrames.push(new Bitmap(Assets.getBitmapData("assets/soldier_anim2.png")));
-        var bitmapIdle = new Bitmap(Assets.getBitmapData("assets/soldier_idle.png"));
+        bitmapFrames.push(new Bitmap(
+                            Assets.getBitmapData("assets/soldier_anim1.png")));
+        bitmapFrames.push(new Bitmap(
+                            Assets.getBitmapData("assets/soldier_anim2.png")));
+        var bitmapIdle = new Bitmap(
+                            Assets.getBitmapData("assets/soldier_idle.png"));
 
         var anim = em.addComponent(player, new CAnimation());
         anim.idle = bitmapIdle;
@@ -216,11 +256,13 @@ class EntityCreator extends EntityCreatowr
     @networked
     public function bullet(args:Array<Int>):Entity
     {
+        trace("bullet " + args);
         var x = args[0];
         var y = args[1];
 
         var bullet = em.createEntity();
         em.addComponent(bullet, new CPosition(x, y));
+        em.addComponent(bullet, new CBullet());
 
         #if client
         var sprite = new Sprite();
@@ -243,7 +285,8 @@ class EntityCreator extends EntityCreatowr
 
         #if client
         var sprite = new Sprite();
-        var bitmap = new Bitmap(Assets.getBitmapData("assets/soldier_dead.png"));
+        var bitmap = new Bitmap(
+                        Assets.getBitmapData("assets/soldier_dead.png"));
         sprite.addChild(bitmap);
         var drawable = em.addComponent(deadBody, new CDrawable(sprite));
         #end

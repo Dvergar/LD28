@@ -28,8 +28,6 @@ class World
         var worldDatas = datas.getDatasFromLayer("world");
         var worldTileArray = datas.getTilesheetArray(worldDatas);
         World.tileSheetArray = worldTileArray;
-
         World.map = datas.getCollisionMapFromLayer("collision");
-        // trace("collmap " + World.map);
     }
 }

@@ -5,10 +5,10 @@ import enh.Builders;
 import Common;
 
 
+// only bullets !?
 class MovementSystem extends System<Main, EntityCreator>
 {
     public function init() {}
-
 
     public function processEntities()
     {
@@ -18,8 +18,8 @@ class MovementSystem extends System<Main, EntityCreator>
             var mov = em.getComponent(object, CMovingObject);
             var pos = em.getComponent(object, CPosition);
 
-            pos.x += mov.v[0] * mov.speed;
-            pos.y += mov.v[1] * mov.speed;
+            pos.x += mov.vx * mov.speed;
+            pos.y += mov.vy * mov.speed;
         }
 
         var allPositions = em.getAllComponentsOfType(CPosition);

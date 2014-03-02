@@ -42,12 +42,8 @@ class AnimationSystem extends System<Client, EntityCreator>
             var dx = pos.x - pos.oldx;
             var dy = pos.y - pos.oldy;
 
-            // if(em.hasComponent(player, CGhost))
-            // {
-            //     trace("pos " + pos.x + " / " + pos.y + " # old " + pos.oldx + " / " + pos.oldy);
-            // }
-
-            if((dx > 1 || dx < -1 || dy > 1 || dy < -1) && Timer.getTime() - anim.frameTime > 0.1)
+            if((dx > 1 || dx < -1 || dy > 1 || dy < -1) &&
+               Timer.getTime() - anim.frameTime > 0.1)
             {
                 var newBitmap = getNextFrame(anim);
 
@@ -99,17 +95,17 @@ class AnimationSystem extends System<Client, EntityCreator>
             }
 
             
-            if(hp.future < hp.value)
+            if(hp.value < hp.past)
             {
                 var drawable = em.getComponent(player, CDrawable);
                 drawable.sprite.transform.colorTransform = hitColor;
-                em.addComponent(player, new CTimer(onCollisionEnd.bind(player), 0.1));
+                em.addComponent(player,
+                                new CTimer(onCollisionEnd.bind(player), 0.1));
             }
-
             
             // HPBAR
             healthBar.resize(hp.value / 100);
-            hp.value = hp.future;
+            if(hp.value != hp.past) hp.past = hp.value;
         }
 
         var stars = em.getEntitiesWithComponent(CStar);
@@ -131,7 +127,6 @@ class AnimationSystem extends System<Client, EntityCreator>
 
     function onCollisionEnd(entity:Entity)
     {
-        // trace("onCollisionEnd");
         var drawable = em.getComponent(entity, CDrawable);
         drawable.sprite.transform.colorTransform = nohitColor;
     }

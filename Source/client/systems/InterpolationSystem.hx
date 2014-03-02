@@ -19,30 +19,41 @@ class InterpolationSystem extends System<Client, EntityCreator>
             var pos = em.getComponent(player, CPosition);
             var interp = em.getComponent(player, CInterpolation);
 
-            pos.x += (interp.x - pos.x) * 0.3;
-            pos.y += (interp.y - pos.y) * 0.3;
+            // SUPER NAIVE INTERPOLATION
+            pos.x += (pos.netx - pos.x) * 0.3;
+            pos.y += (pos.nety - pos.y) * 0.3;
+            pos.flipped = pos.netFlipped;
+
+            if(em.hasComponent(player, CGhost))
+            {
+                var myPlayer = em.getComponent(player, CGhost).entity;
+                var myPos = em.getComponent(myPlayer, CPosition);
+
+                pos.x = myPos.netx;
+                pos.y = myPos.nety;
+            }
         }
 
-        // var nonsense = em.getEntitiesWithComponent(CMyPlayer);
-        // for(myPlayer in nonsense)
-        // {
-        //     var pos = em.getComponent(myPlayer, CPosition);
-        //     var ghost = em.getEntitiesWithComponent(CGhost).next();
-        //     var interp = em.getComponent(ghost, CInterpolation);
-        //     if(Timer.getTime() - pos.lastMove > 0.5)
-        //     {
-        //         pos.x += (interp.x - pos.x) * 0.3;
-        //         pos.y += (interp.y - pos.y) * 0.3;
-        //     }
+        var nonsense = em.getEntitiesWithComponent(CMyPlayer);
+        for(myPlayer in nonsense)
+        {
+            var pos = em.getComponent(myPlayer, CPosition);
+            var ghost = em.getEntitiesWithComponent(CGhost).next();
 
-        //     var dx = Math.abs(pos.x - interp.x);
-        //     var dy = Math.abs(pos.y - interp.y);
+            if(Timer.getTime() - pos.lastMove > 0.5)
+            {
+                pos.x += (pos.netx - pos.x) * 0.3;
+                pos.y += (pos.nety - pos.y) * 0.3;
+            }
 
-        //     if(dx > 100 || dy > 100)
-        //     {
-        //         pos.x = interp.x;
-        //         pos.y = interp.y;
-        //     }
-        // }
+            var dx = Math.abs(pos.x - pos.netx);
+            var dy = Math.abs(pos.y - pos.nety);
+
+            if(dx > 100 || dy > 100)
+            {
+                pos.x = pos.netx;
+                pos.y = pos.nety;
+            }
+        }
     }
 }

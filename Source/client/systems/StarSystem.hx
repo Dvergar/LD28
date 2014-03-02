@@ -24,9 +24,7 @@ class StarSystem extends System<Client, EntityCreator>
             em.removeComponentOfType(entity, CStar);
 
         var lvl = em.getComponent(entity, CLevel);
-        trace("attachStarTo " + lvl.value);
         if(lvl.value == 0) return;
-        trace("attach checked");
 
         var sprite = new Sprite();
         sprite.y -= 30;
@@ -43,7 +41,6 @@ class StarSystem extends System<Client, EntityCreator>
         var x = 0;
         for(i in 0...nb)
         {
-            trace("pouf");
             var bitmap = new Bitmap(Assets.getBitmapData("assets/star.png"));
             bitmap.x = x;
 
@@ -52,12 +49,5 @@ class StarSystem extends System<Client, EntityCreator>
         }
     }
 
-    public function processEntities()
-    {
-        // var allCams = em.getEntitiesWithComponent(CS);
-        // for(player in allCams)
-        // {
-
-        // }
-    }
+    public function processEntities() {}
 }

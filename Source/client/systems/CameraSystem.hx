@@ -34,9 +34,7 @@ class CameraSystem extends System<Client, EntityCreator>
 	            }
 
 	            if(Timer.getTime() - ss.startTime > 0.1)
-	            {
 	                em.removeComponentOfType(player, CScreenShake);
-	            }
         	}
 
         	cam.dx += (pos.x - cam.x) * 0.1;
