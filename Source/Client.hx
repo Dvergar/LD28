@@ -456,12 +456,6 @@ class Client extends Enh2<Client, EntityCreator>
             gotoFail();
     }
 
-    @x('Short') @y('Short') @id('Short') @lvl('Short') @connId('Short')
-    function onOtherPlayerCreate(entity:Entity, ev:Dynamic)
-    {
-        onPlayerCreate(entity, ev);
-    }
-
     function onPlayerCreate(player:Entity, ev:Dynamic)
     {
         trace("player create " + player + " / " +
