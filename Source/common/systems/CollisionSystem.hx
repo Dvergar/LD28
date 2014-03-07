@@ -13,7 +13,8 @@ class CollisionSystem extends System<Main, EntityCreator>
 {
     public function init() {}
 
-    static inline function corners() {
+    static inline function corners()
+    {
         var margin = 2;
         return [[margin, margin],
                 [World.TILE_SIZE - margin, margin],
@@ -29,6 +30,20 @@ class CollisionSystem extends System<Main, EntityCreator>
         return [posx, posy];
     }
 
+    static inline function outsideMap(posx:Int, posy:Int)
+    {
+        var outside = false;
+        if(posx >= PyxelMapImporter.TILES_WIDE ||
+           posy >= PyxelMapImporter.TILES_HIGH ||
+           posx < 0 ||
+           posy < 0)
+        {
+            outside = true;
+        }
+        return outside;
+    }
+
+    // MAYBE UPDATE TO AABB COLLISIONS
     static inline function collides(x:Float, y:Float)
     {
         var collision = false;
@@ -46,19 +61,6 @@ class CollisionSystem extends System<Main, EntityCreator>
         }
 
         return collision;
-    }
-
-    static inline function outsideMap(posx:Int, posy:Int)
-    {
-        var outside = false;
-        if(posx >= PyxelMapImporter.TILES_WIDE ||
-           posy >= PyxelMapImporter.TILES_HIGH ||
-           posx < 0 ||
-           posy < 0)
-        {
-            outside = true;
-        }
-        return outside;
     }
 
     public function move(player:Entity)
@@ -144,7 +146,6 @@ class CollisionSystem extends System<Main, EntityCreator>
             }
 
             // BULLETS TO PLAYERS
-            // Mhhhhhhhhhh U_U
             var owner = em.getComponent(object, COwner).entity;
             var allPlayers = em.getEntitiesWithComponent(CPlayer);
             for(player in allPlayers)

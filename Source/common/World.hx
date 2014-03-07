@@ -15,14 +15,14 @@ class World
     {
         TILE_SIZE = 16 * 4;
 
-    	#if server
+        #if server
         var datas = new PyxelMapImporter(
                         sys.io.File.getContent("../assets/map"), 4);
         #end
 
         #if client
         var datas = new PyxelMapImporter(
-        				Assets.getText("assets/map"), 4);
+                        Assets.getText("assets/map"), 4);
         #end
 
         var worldDatas = datas.getDatasFromLayer("world");

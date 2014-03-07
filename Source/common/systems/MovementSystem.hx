@@ -5,7 +5,6 @@ import enh.Builders;
 import Common;
 
 
-// only bullets !?
 class MovementSystem extends System<Main, EntityCreator>
 {
     public function init() {}

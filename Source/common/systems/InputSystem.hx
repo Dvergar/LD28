@@ -36,36 +36,36 @@ class InputSystem extends System<Main, EntityCreator>
         for(player in allInputs)
         {
             var pos = em.getComponent(player, CPosition);
-        	var input = em.getComponent(player, CInput);
-        	var drawable = em.getComponent(player, CDrawable);
-        	var sprite = drawable.sprite;
-        	var bitmap = drawable.bitmap;
+            var input = em.getComponent(player, CInput);
+            var drawable = em.getComponent(player, CDrawable);
+            var sprite = drawable.sprite;
+            var bitmap = drawable.bitmap;
 
-        	var dx = event.stageX - pos.x - Client.viewport.x;
+            var dx = event.stageX - pos.x - Client.viewport.x;
 
-        	if(dx < 0 && !pos.flipped)
-        		pos.flipped = true;
+            if(dx < 0 && !pos.flipped)
+                pos.flipped = true;
         
-        	if(dx > 0 && pos.flipped)
-        		pos.flipped = false;
+            if(dx > 0 && pos.flipped)
+                pos.flipped = false;
 
             input.mouseX = Std.int(event.stageX - Client.viewport.x);
             input.mouseY = Std.int(event.stageY - Client.viewport.y);
-    	}
+        }
     }
 
     private function onMouseDown(ev:MouseEvent)
     {
         var allInputs = this.em.getAllComponentsOfType(CInput);
         for(input in allInputs)
-        	input.mouseIsDown = true;
+            input.mouseIsDown = true;
     }
 
     private function onMouseUp(event:MouseEvent)
     {
         var allInputs = this.em.getAllComponentsOfType(CInput);
         for(input in allInputs)
-        	input.mouseIsDown = false;
+            input.mouseIsDown = false;
     }
 
 
@@ -74,20 +74,20 @@ class InputSystem extends System<Main, EntityCreator>
         var allInputs = this.em.getAllComponentsOfType(CInput);
         for(input in allInputs)
         {
-	        switch(event.keyCode)
-	        {
-	            // case Keyboard.Q:
-	            case Keyboard.A:
-	                input.keyLeftIsDown = true;
-	            case Keyboard.D:
-	                input.keyRightIsDown = true;
-	            case Keyboard.W:
-	            // case Keyboard.Z:
-	                input.keyUpIsDown = true;
-	            case Keyboard.S:
-	                input.keyDownIsDown = true;
-	        }
-	    }
+            switch(event.keyCode)
+            {
+                // case Keyboard.Q:
+                case Keyboard.A:
+                    input.keyLeftIsDown = true;
+                case Keyboard.D:
+                    input.keyRightIsDown = true;
+                case Keyboard.W:
+                // case Keyboard.Z:
+                    input.keyUpIsDown = true;
+                case Keyboard.S:
+                    input.keyDownIsDown = true;
+            }
+        }
     }
 
     private function onKeyUp(event:KeyboardEvent)
@@ -95,20 +95,20 @@ class InputSystem extends System<Main, EntityCreator>
         var allInputs = this.em.getAllComponentsOfType(CInput);
         for(input in allInputs)
         {
-	        switch(event.keyCode)
-	        {
-	            // case Keyboard.Q:
-	            case Keyboard.A:
-	                input.keyLeftIsDown = false;
-	            case Keyboard.D:
-	                input.keyRightIsDown = false;
-	            case Keyboard.W:
-	            // case Keyboard.Z:
-	                input.keyUpIsDown = false;
-	            case Keyboard.S:
-	                input.keyDownIsDown = false;
-	        }
-	    }
+            switch(event.keyCode)
+            {
+                // case Keyboard.Q:
+                case Keyboard.A:
+                    input.keyLeftIsDown = false;
+                case Keyboard.D:
+                    input.keyRightIsDown = false;
+                case Keyboard.W:
+                // case Keyboard.Z:
+                    input.keyUpIsDown = false;
+                case Keyboard.S:
+                    input.keyDownIsDown = false;
+            }
+        }
     }
     #end
 
@@ -117,23 +117,23 @@ class InputSystem extends System<Main, EntityCreator>
         var allInputs = this.em.getEntitiesWithComponent(CInput);
         for(player in allInputs)
         {
-        	var input = em.getComponent(player, CInput);
+            var input = em.getComponent(player, CInput);
             var bulletRate = em.getComponent(player, CBulletRate);
 
-        	if(input.mouseIsDown &&
+            if(input.mouseIsDown &&
                Timer.getTime() - input.lastActionTime > bulletRate.value)
-        	{
+            {
                 trace("hit " + (Timer.getTime() - input.lastActionTime));
 
-        		var playerPos = em.getComponent(player, CPosition);
+                var playerPos = em.getComponent(player, CPosition);
 
                 var playerCenterX = Std.int(playerPos.x + World.TILE_SIZE / 2);
                 var playerCenterY = Std.int(playerPos.y + World.TILE_SIZE / 2);
 
-        		var v:Array<Float> = [input.mouseX - playerCenterX,
-        				              input.mouseY - playerCenterY];
-        		var d = Math.sqrt(Math.pow(v[0], 2) + Math.pow(v[1], 2));
-        		v = [v[0] / d, v[1] / d];
+                var v:Array<Float> = [input.mouseX - playerCenterX,
+                                      input.mouseY - playerCenterY];
+                var d = Math.sqrt(Math.pow(v[0], 2) + Math.pow(v[1], 2));
+                v = [v[0] / d, v[1] / d];
 
                 playerPos.dx -= v[0] * 8;
                 playerPos.dy -= v[1] * 8;
@@ -158,6 +158,6 @@ class InputSystem extends System<Main, EntityCreator>
                                                + playerCenterY);
                 trace("mouse " + input.mouseX + " / " + input.mouseY);
             }
-    	}
-	}
+        }
+    }
 }

@@ -208,7 +208,6 @@ class EntityCreator extends EntityCreatowr
     @networked
     public function player(args:Array<Int>):Entity
     {
-
         var x = args[0];
         var y = args[1];
 
@@ -265,8 +264,8 @@ class EntityCreator extends EntityCreatowr
         em.addComponent(bullet, new CBullet());
 
         #if client
-        var sprite = new Sprite();
         var bitmap = new Bitmap(Assets.getBitmapData("assets/bullet.png"));
+        var sprite = new Sprite();
         sprite.addChild(bitmap);
         var drawable = em.addComponent(bullet, new CDrawable(sprite));
         #end
@@ -283,13 +282,11 @@ class EntityCreator extends EntityCreatowr
         var deadBody = em.createEntity();
         em.addComponent(deadBody, new CPosition(x, y));
 
-        #if client
         var sprite = new Sprite();
         var bitmap = new Bitmap(
                         Assets.getBitmapData("assets/soldier_dead.png"));
         sprite.addChild(bitmap);
         var drawable = em.addComponent(deadBody, new CDrawable(sprite));
-        #end
 
         return deadBody;
     }

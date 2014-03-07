@@ -24,9 +24,9 @@ class AnimationSystem extends System<Client, EntityCreator>
 
     public function getNextFrame(anim:CAnimation)
     {
-    	anim.pointer++;
-    	if(anim.pointer > 1) anim.pointer = 0;
-    	return anim.frames[anim.pointer];
+        anim.pointer++;
+        if(anim.pointer > 1) anim.pointer = 0;
+        return anim.frames[anim.pointer];
     }
 
     public function processEntities()
@@ -36,8 +36,8 @@ class AnimationSystem extends System<Client, EntityCreator>
         {
             if(em.hasComponent(player, CDead)) continue;
 
-        	var pos = em.getComponent(player, CPosition);
-        	var anim = em.getComponent(player, CAnimation);
+            var pos = em.getComponent(player, CPosition);
+            var anim = em.getComponent(player, CAnimation);
             var drawable = em.getComponent(player, CDrawable);
             var dx = pos.x - pos.oldx;
             var dy = pos.y - pos.oldy;

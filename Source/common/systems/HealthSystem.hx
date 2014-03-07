@@ -63,7 +63,7 @@ class HealthSystem extends System<Main, EntityCreator>
             if(hp.value > 100) hp.value = 100;
         }
 
-        // DEATH UGGGGLYYYY
+        // DEATH U_U
         var allPlayers = em.getAllComponentsOfType(CPlayer);
         var nbPlayers = 0; for(player in allPlayers) nbPlayers++;
 

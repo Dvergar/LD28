@@ -7,11 +7,11 @@ class PyxelMapImporter {
     public var TILE_HEIGHT:Int;
     public static var TILES_WIDE:Int;
     public static var TILES_HIGH:Int;
-	private var mapDatas:Array<Map<String, String>>;
+    private var mapDatas:Array<Map<String, String>>;
     private var xml:Xml;
     private var tilemap:haxe.xml.Fast;
 
-	public function new(xmlDatas:String, scale:Int) {
+    public function new(xmlDatas:String, scale:Int) {
         xml = Xml.parse(xmlDatas);
         tilemap = new haxe.xml.Fast(xml.firstElement());
         TILE_WIDTH = Std.parseInt(tilemap.att.tilewidth) * 4;
@@ -20,7 +20,7 @@ class PyxelMapImporter {
         TILES_HIGH = Std.parseInt(tilemap.att.tileshigh);
         scale = 1;
         trace("Tile width : " + TILE_WIDTH + " Tile height : " + TILE_HEIGHT);
-	}
+    }
 
     public function getDatasFromLayer(layerName:String):Array<Map<String, String>> {
         var layers = tilemap.nodes.layer;
@@ -88,7 +88,7 @@ class PyxelMapImporter {
         return tileArray;
     }
 
-	public function getCollisionMapFromLayer(layerName:String)
+    public function getCollisionMapFromLayer(layerName:String)
                                                     :Array<Array<Int>>{
         var map = this.getDatasFromLayer(layerName);
         var collisionMap = new Array();
@@ -113,5 +113,5 @@ class PyxelMapImporter {
         }
 
         return collisionMap;
-	}
+    }
 }
