@@ -452,7 +452,7 @@ class Client extends Enh2<Client, EntityCreator>
         starSystem.attachStarTo(killer);
 
         if(killer == myPlayer)
-            Upgrade.level(myPlayer, ev.lvl);
+            Upgrade.level(em, myPlayer, ev.lvl);
             gotoFail();
     }
 

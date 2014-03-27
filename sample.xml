@@ -16,7 +16,9 @@
 
   <haxelib name="openfl" />
   <haxelib name="actuate" />
-  <haxelib name="enh" />
+  
+  <source path="Libs/enh/src" />
+  <haxedef name="client" />
 
   <assets path="Assets" rename="assets" include="*"/>
   <app swf-version="11.2" />

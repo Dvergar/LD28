@@ -40,7 +40,7 @@ class HealthSystem extends System<Main, EntityCreator>
             lvl.value++;
             lvl.value+= Std.int(deadlvl.value / 2);
             if(lvl.value > 4) lvl.value = 4;
-            Upgrade.level(killer, lvl.value);
+            Upgrade.level(em, killer, lvl.value);
 
             // HP REGEN UPDATE
             var hp = em.getComponent(killer, CHealth);

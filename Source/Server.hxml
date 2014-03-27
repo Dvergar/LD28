@@ -1,6 +1,8 @@
 -main Server.hx
--cpp D:\prog\#BUILDS\ECSCPP
+-cpp "D:\prog\#BUILDS\ld28cpp"
+-D server
+-cp ../Libs/enh/src
 -debug
 -cmd echo test
 
-# -cmd "D:\prog\#BUILDS\ECSCPP\Server-debug.exe"
+-cmd "D:\prog\#BUILDS\ld28cpp\Server-debug.exe"

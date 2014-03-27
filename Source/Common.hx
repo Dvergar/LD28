@@ -191,10 +191,10 @@ class CInput extends Component
 
 class Upgrade
 {
-    static public inline function level(entity:Entity, lvl:Int)
+    static public function level(em, entity:Entity, lvl:Int)
     {
-        Enh.em.getComponent(entity, CBulletRate).value = 0.3 - lvl * 0.05;
-        trace("LEVEL UP " +  Enh.em.getComponent(entity, CBulletRate).value);
+        em.getComponent(entity, CBulletRate).value = 0.3 - lvl * 0.05;
+        trace("LEVEL UP " +  em.getComponent(entity, CBulletRate).value);
     }
 }
 
