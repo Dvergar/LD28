@@ -1,0 +1,3 @@
+[submodule "Libs/enh"]
+	path = Libs/enh
+	url = git@github.com:Dvergar/ECS-Networking-Haxe.git
